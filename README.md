@@ -1,6 +1,6 @@
-<h1>ExpNo 6 : Implement Minimax Search Algorithm for a Simple TIC-TAC-TOE game</h1> 
-<h3>Name: PRAVEEN SANTHALINGAM M</h3>
-<h3>Register Number: 212224040246</h3>
+<h1>ExpNo 5 : Implement Minimax Search Algorithm for a Simple TIC-TAC-TOE game</h1> 
+<h3>Name: PRAVEEN SANTHALINGAM M </h3>
+<h3>Register Number: 212224040246         </h3>
 <H3>Aim:</H3>
 <p>
     Implement Minimax Search Algorithm for a Simple TIC-TAC-TOE game
@@ -103,185 +103,175 @@ def minimax(game)
 end
 
 <hr>
-<h2>PROGRAM:</h2>
+<h2>Program:</h2>
 
-```python
+```
 import time
 
-class Game:
+class TicTacToe:
     def __init__(self):
-        self.initialize_game()
-
-    def initialize_game(self):
-        self.current_state = [['.','.','.'],
-                              ['.','.','.'],
-                              ['.','.','.']]
-        self.player_turn = 'X'  # Player X always plays first
-
-    def draw_board(self):
+        self.board = [['.' for _ in range(3)] for _ in range(3)]
+        self.current_player = 'X'
+    
+    def print_board(self):
+        for i in range(3):
+            print(' | '.join(self.board[i]))
+            if i < 2:
+                print('---------')
+    
+    def get_available_moves(self):
+        moves = []
         for i in range(3):
             for j in range(3):
-                print('{}|'.format(self.current_state[i][j]), end=" ")
-            print()
-        print()
-
-    def is_valid(self, px, py):
-        if px < 0 or px > 2 or py < 0 or py > 2:
-            return False
-        elif self.current_state[px][py] != '.':
-            return False
-        else:
+                if self.board[i][j] == '.':
+                    moves.append((i, j))
+        return moves
+    
+    def make_move(self, move, player):
+        i, j = move
+        if self.board[i][j] == '.':
+            self.board[i][j] = player
             return True
-
-    def is_end(self):
-        # Vertical win
+        return False
+    
+    def undo_move(self, move):
+        i, j = move
+        self.board[i][j] = '.'
+    
+    def check_winner(self, player):
+     
         for i in range(3):
-            if (self.current_state[0][i] != '.' and
-                self.current_state[0][i] == self.current_state[1][i] and
-                self.current_state[1][i] == self.current_state[2][i]):
-                return self.current_state[0][i]
+            if all(self.board[i][j] == player for j in range(3)):
+                return True
+        
+      
+        for j in range(3):
+            if all(self.board[i][j] == player for i in range(3)):
+                return True
+        
+      
+        if all(self.board[i][i] == player for i in range(3)):
+            return True
+        if all(self.board[i][2-i] == player for i in range(3)):
+            return True
+        
+        return False
+    
+    def is_board_full(self):
+        return all(self.board[i][j] != '.' for i in range(3) for j in range(3))
+    
+    def game_over(self):
+        return self.check_winner('X') or self.check_winner('O') or self.is_board_full()
 
-        # Horizontal win
-        for i in range(3):
-            if (self.current_state[i] == ['X', 'X', 'X']):
-                return 'X'
-            elif (self.current_state[i] == ['O', 'O', 'O']):
-                return 'O'
-
-        # Main diagonal win
-        if (self.current_state[0][0] != '.' and
-            self.current_state[0][0] == self.current_state[1][1] and
-            self.current_state[0][0] == self.current_state[2][2]):
-            return self.current_state[0][0]
-
-        # Second diagonal win
-        if (self.current_state[0][2] != '.' and
-            self.current_state[0][2] == self.current_state[1][1] and
-            self.current_state[0][2] == self.current_state[2][0]):
-            return self.current_state[0][2]
-
-        # Check for a tie
-        for i in range(3):
-            for j in range(3):
-                if self.current_state[i][j] == '.':
-                    return None  # Game is still ongoing
-
-        return '.'  # It's a tie
-
-    def max(self):
-        maxv = -2  # Initial worse case
-        px = None
-        py = None
-
-        result = self.is_end()
-        if result == 'X':
-            return (-1, 0, 0)
-        elif result == 'O':
-            return (1, 0, 0)
-        elif result == '.':
-            return (0, 0, 0)
-
-        for i in range(3):
-            for j in range(3):
-                if self.current_state[i][j] == '.':
-                    self.current_state[i][j] = 'O'  # Simulate AI's move
-                    (m, min_i, min_j) = self.min()  # Call min() to evaluate
-                    if m > maxv:
-                        maxv = m
-                        px = i
-                        py = j
-                    self.current_state[i][j] = '.'  # Undo the move
-
-        return (maxv, px, py)
-
-    def min(self):
-        minv = 2  # Initial worse case
-        qx = None
-        qy = None
-
-        result = self.is_end()
-        if result == 'X':
-            return (-1, 0, 0)
-        elif result == 'O':
-            return (1, 0, 0)
-        elif result == '.':
-            return (0, 0, 0)
-
-        for i in range(3):
-            for j in range(3):
-                if self.current_state[i][j] == '.':
-                    self.current_state[i][j] = 'X'  # Simulate player's move
-                    (m, max_i, max_j) = self.max()  # Call max() to evaluate
-                    if m < minv:
-                        minv = m
-                        qx = i
-                        qy = j
-                    self.current_state[i][j] = '.'  # Undo the move
-
-        return (minv, qx, qy)
-
-    def play(self):
-        while True:
-            self.draw_board()
-            self.result = self.is_end()
-
-            if self.result != None:
-                if self.result == 'X':
-                    print('The winner is X!')
-                elif self.result == 'O':
-                    print('The winner is O!')
-                elif self.result == '.':
-                    print("It's a tie!")
-
-                self.initialize_game()
-                return
-
-            if self.player_turn == 'X':
-                while True:
-                    start = time.time()
-                    (m, qx, qy) = self.min()
-                    end = time.time()
-                    print('Evaluation time: {}s'.format(round(end - start, 7)))
-                    print('Recommended move: X = {}, Y = {}'.format(qx, qy))
-
-                    px = int(input('Insert the X coordinate: '))
-                    py = int(input('Insert the Y coordinate: '))
-
-                    if self.is_valid(px, py):
-                        self.current_state[px][py] = 'X'
-                        self.player_turn = 'O'
-                        break
-                    else:
-                        print('The move is not valid! Try again.')
-
-            else:
-                (m, px, py) = self.max()
-                self.current_state[px][py] = 'O'
-                self.player_turn = 'X'
+class MinimaxAI:
+    def __init__(self, player):
+        self.player = player
+        self.opponent = 'O' if player == 'X' else 'X'
+    
+    def evaluate(self, game):
+        if game.check_winner(self.player):
+            return 10
+        elif game.check_winner(self.opponent):
+            return -10
+        else:
+            return 0
+    
+    def minimax(self, game, depth, is_maximizing):
+        if game.check_winner(self.player):
+            return 10 - depth
+        if game.check_winner(self.opponent):
+            return depth - 10
+        if game.is_board_full():
+            return 0
+        
+        if is_maximizing:
+            best_score = float('-inf')
+            for move in game.get_available_moves():
+                game.make_move(move, self.player)
+                score = self.minimax(game, depth + 1, False)
+                game.undo_move(move)
+                best_score = max(score, best_score)
+            return best_score
+        else:
+            best_score = float('inf')
+            for move in game.get_available_moves():
+                game.make_move(move, self.opponent)
+                score = self.minimax(game, depth + 1, True)
+                game.undo_move(move)
+                best_score = min(score, best_score)
+            return best_score
+    
+    def get_best_move(self, game):
+        best_score = float('-inf')
+        best_move = None
+        
+        available_moves = game.get_available_moves()
+        if not available_moves:
+            return None
+        
+        for move in available_moves:
+            game.make_move(move, self.player)
+            score = self.minimax(game, 0, False)
+            game.undo_move(move)
+            
+            if score > best_score:
+                best_score = score
+                best_move = move
+        
+        return best_move
 
 def main():
-    g = Game()
-    g.play()
+    game = TicTacToe()
+    ai = MinimaxAI('X')
+    
+    print("Initial board:")
+    game.print_board()
+    print()
+    
+    while not game.game_over():
+        if game.current_player == 'X':
+            start_time = time.time()
+            move = ai.get_best_move(game)
+            end_time = time.time()
+            
+            print(f"Evaluation time: {end_time - start_time:.7f}s")
+            print(f"Recommended move: X = {move[0]}, Y = {move[1]}")
+            
+            x = int(input("Insert the X coordinate: "))
+            y = int(input("Insert the Y coordinate: "))
+            game.make_move((x, y), 'X')
+            game.current_player = 'O'
+        
+        else:
+            available_moves = game.get_available_moves()
+            if available_moves:
+                move = available_moves[0]
+                game.make_move(move, 'O')
+                game.current_player = 'X'
+        
+        print()
+        game.print_board()
+        print()
+    
+    if game.check_winner('X'):
+        print("X wins!")
+    elif game.check_winner('O'):
+        print("O wins!")
+    else:
+        print("It's a tie!")
 
 if __name__ == "__main__":
     main()
 ```
 
 <hr>
-
 <h2>Sample Input and Output</h2>
 
-![image](https://github.com/natsaravanan/19AI405FUNDAMENTALSOFARTIFICIALINTELLIGENCE/assets/87870499/6b668685-8bcc-43c5-b5c2-ddd43f3da84a)
-![image](https://github.com/natsaravanan/19AI405FUNDAMENTALSOFARTIFICIALINTELLIGENCE/assets/87870499/8ca1b08a-8312-4ef5-89df-e69b7b2c3fa2)
-![image](https://github.com/natsaravanan/19AI405FUNDAMENTALSOFARTIFICIALINTELLIGENCE/assets/87870499/dc06427a-d4ce-43a1-95bd-9acfaefac323)
-![image](https://github.com/natsaravanan/19AI405FUNDAMENTALSOFARTIFICIALINTELLIGENCE/assets/87870499/a8a27e2a-6fd4-46a2-afb5-6d27b8556702)
-![image](https://github.com/natsaravanan/19AI405FUNDAMENTALSOFARTIFICIALINTELLIGENCE/assets/87870499/a2acb6a1-ed8e-42e5-8968-fe805e4b0255)
+<img width="778" height="562" alt="image" src="https://github.com/user-attachments/assets/cc94f0d5-fa20-488f-8fc4-a30e2e959ac1" />
+<img width="777" height="668" alt="image" src="https://github.com/user-attachments/assets/9246b1a5-082f-4af5-8cd7-da1e543083e0" />
+<img width="770" height="692" alt="image" src="https://github.com/user-attachments/assets/677bd2ea-f892-40a7-8507-56a17128dbb6" />
+<img width="764" height="348" alt="image" src="https://github.com/user-attachments/assets/9be6b880-dadf-4639-97ba-a9a66da45052" />
 
-<hr>
-<h2>OUTPUT</h2>
-
-![alt text](image.png)
-![alt text](image-1.png)
 
 <hr>
 <h2>Result:</h2>
